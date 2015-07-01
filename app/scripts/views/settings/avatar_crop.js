@@ -9,6 +9,7 @@ define([
   'cocktail',
   'views/form',
   'views/mixins/settings-mixin',
+  'views/mixins/settings-panel-mixin',
   'views/mixins/avatar-mixin',
   'stache!templates/settings/avatar_crop',
   'lib/constants',
@@ -17,8 +18,8 @@ define([
   'models/cropper-image',
   'models/profile-image'
 ],
-function (p, Cocktail, FormView, SettingsMixin, AvatarMixin, Template,
-    Constants, Cropper, AuthErrors, CropperImage, ProfileImage) {
+function (p, Cocktail, FormView, SettingsMixin, SettingsPanelMixin, AvatarMixin,
+    Template, Constants, Cropper, AuthErrors, CropperImage, ProfileImage) {
   var HORIZONTAL_GUTTER = 90;
   var VERTICAL_GUTTER = 0;
 
@@ -107,7 +108,7 @@ function (p, Cocktail, FormView, SettingsMixin, AvatarMixin, Template,
 
   });
 
-  Cocktail.mixin(View, SettingsMixin, AvatarMixin);
+  Cocktail.mixin(View, SettingsMixin, SettingsPanelMixin, AvatarMixin);
 
   return View;
 });

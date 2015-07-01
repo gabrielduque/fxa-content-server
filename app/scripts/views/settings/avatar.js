@@ -5,6 +5,8 @@
 'use strict';
 
 define([
+  'jquery',
+  'modal',
   'cocktail',
   'views/form',
   'stache!templates/settings/avatar',
@@ -12,7 +14,7 @@ define([
   'views/mixins/settings-mixin',
   'views/mixins/settings-panel-mixin'
 ],
-function (Cocktail, FormView, Template, AvatarMixin, SettingsMixin,
+function ($, modal, Cocktail, FormView, Template, AvatarMixin, SettingsMixin,
     SettingsPanelMixin) {
   var View = FormView.extend({
     template: Template,
