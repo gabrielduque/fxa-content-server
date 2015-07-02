@@ -363,10 +363,13 @@ function (
     initializeAuthenticationBroker: function () {
       /*eslint complexity: [2, 7] */
       if (! this._authenticationBroker) {
-        if (this._isFxDesktopV2()) {
+        if (this._isFirstRun()) {
           this._authenticationBroker = new FxDesktopV2AuthenticationBroker({
-            window: this._window,
-            relier: this._relier
+            haltAfterResetPasswordConfirmationPoll: false,
+            haltAfterSignIn: false,
+            haltBeforeSignUpConfirmationPoll: false,
+            relier: this._relier,
+            window: this._window
           });
         } else if (this._isFxDesktopV1()) {
           this._authenticationBroker = new FxDesktopV1AuthenticationBroker({
@@ -589,6 +592,10 @@ function (
       // considered fx-desktop. If service=sync is on the URL, it's considered
       // fx-desktop.
       return this._isFxDesktopV1() || this._isFxDesktopV2() || this._isSync();
+    },
+
+    _isFirstRun: function () {
+      return this._isFxDesktopV2() && this._isIframeContext();
     },
 
     _isWebChannel: function () {

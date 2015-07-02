@@ -37,12 +37,26 @@ define([
      */
     initialize: function (options) {
       options = options || {};
+      var self = this;
 
       // channel can be passed in for testing.
-      this._channel = options.channel;
+      self._channel = options.channel;
+      self._metrics = options.metrics;
+
+      var optionsToImport = [
+        'haltAfterResetPasswordConfirmationPoll',
+        'haltAfterSignIn',
+        'haltBeforeSignUpConfirmationPoll'
+      ];
+
+      optionsToImport.forEach(function (field) {
+        if (field in options) {
+          self['_' + field] = options[field];
+        }
+      });
 
       return BaseAuthenticationBroker.prototype.initialize.call(
-          this, options);
+          self, options);
     },
 
     afterLoaded: function () {
@@ -71,35 +85,41 @@ define([
         });
     },
 
+    _haltAfterSignIn: true,
     afterSignIn: function (account) {
-      return this._notifyRelierOfLogin(account)
+      var self = this;
+      return self._notifyRelierOfLogin(account)
         .then(function () {
           // the browser will take over from here,
           // don't let the screen transition.
-          return { halt: true };
+          return { halt: self._haltAfterSignIn };
         });
     },
 
+    _haltBeforeSignUpConfirmationPoll: true,
     beforeSignUpConfirmationPoll: function (account) {
       // The Sync broker notifies the browser of an unverified login
       // before the user has verified her email. This allows the user
       // to close the original tab or open the verification link in
       // the about:accounts tab and have Sync still successfully start.
+      var self = this;
       return this._notifyRelierOfLogin(account)
         .then(function () {
           // the browser is already polling, no need for the content server
           // code to poll as well, otherwise two sets of polls are going on
           // for the same user.
-          return { halt: true };
+          return { halt: self._haltBeforeSignUpConfirmationPoll };
         });
     },
 
+    _haltAfterResetPasswordConfirmationPoll: true,
     afterResetPasswordConfirmationPoll: function (account) {
-      return this._notifyRelierOfLogin(account)
+      var self = this;
+      return self._notifyRelierOfLogin(account)
         .then(function () {
           // the browser will take over from here,
           // don't let the screen transition.
-          return { halt: true };
+          return { halt: self._haltAfterResetPasswordConfirmationPoll };
         });
     },
 
