@@ -11,13 +11,14 @@
  */
 
 define([
-  'underscore',
+  'cocktail',
   'models/reliers/base',
-  'models/resume-token',
+  'models/mixins/resume-token',
   'models/mixins/search-param',
   'lib/promise',
   'lib/constants'
-], function (_, BaseRelier, ResumeToken, SearchParamMixin, p, Constants) {
+], function (Cocktail, BaseRelier, ResumeTokenMixin, SearchParamMixin, p,
+  Constants) {
   'use strict';
 
   var RELIER_FIELDS_IN_RESUME_TOKEN = ['campaign', 'entrypoint'];
@@ -39,7 +40,7 @@ define([
     },
 
     /**
-     * Fetch hydrates the model. Returns a promise to allow
+     * Hydrate the model. Returns a promise to allow
      * for an asynchronous load. Sub-classes that override
      * fetch should still call Relier's version before completing.
      *
@@ -51,14 +52,17 @@ define([
      *         // do overriding behavior here.
      *       });
      * }
+     *
+     * @method fetch
      */
     fetch: function () {
       var self = this;
       return p()
         .then(function () {
           // parse the resume token before importing any other data.
-          // query parameters and server provided data take precendence.
-          self._parseResumeToken();
+          // query parameters and server provided data override
+          // resume provided data.
+          self.populateFromStringifiedResumeToken(self.getSearchParam('resume'));
 
           self.importSearchParam('service');
           self.importSearchParam('preVerifyToken');
@@ -103,26 +107,14 @@ define([
       return this.get('allowCachedCredentials');
     },
 
-    // override fieldsInResumeToken to add/change fields
-    // that are saved to and populated from the resume token.
-    fieldsInResumeToken: RELIER_FIELDS_IN_RESUME_TOKEN,
-    pickResumeTokenInfo: function () {
-      return this.pick(this.fieldsInResumeToken);
-    },
-
-    /**
-     * Sets relier properties from the resume token value
-     * @private
-     */
-    _parseResumeToken: function () {
-      var resumeParam = this.getSearchParam('resume');
-      var resumeToken = new ResumeToken(ResumeToken.parse(resumeParam));
-
-      this.set(resumeToken.pick(this.fieldsInResumeToken));
-    }
+    fieldsInResumeToken: RELIER_FIELDS_IN_RESUME_TOKEN
   });
 
-  _.extend(Relier.prototype, SearchParamMixin);
+  Cocktail.mixin(
+    Relier,
+    ResumeTokenMixin,
+    SearchParamMixin
+  );
 
   return Relier;
 });

@@ -19,10 +19,13 @@ function (chai, sinon, p, Constants, Session, FxaClient, User) {
   describe('models/user', function () {
     var user;
     var fxaClientMock;
+    var UUID = 'a mock uuid';
 
     beforeEach(function () {
       fxaClientMock = new FxaClient();
-      user = new User();
+      user = new User({
+        uuid: UUID
+      });
     });
 
     afterEach(function () {
@@ -397,6 +400,13 @@ function (chai, sinon, p, Constants, Session, FxaClient, User) {
 
           assert.isTrue(user.setSignedInAccount.calledWith(account));
         });
+    });
+
+    describe('pickResumeTokenInfo', function () {
+      it('returns the uuid', function () {
+        var resumeTokenInfo = user.pickResumeTokenInfo();
+        assert.equal(resumeTokenInfo.uuid, UUID);
+      });
     });
   });
 });

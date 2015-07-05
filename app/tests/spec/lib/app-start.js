@@ -21,8 +21,10 @@ define([
   'models/reliers/fx-desktop',
   'models/reliers/oauth',
   'models/reliers/relier',
+  'models/resume-token',
   'models/user',
   'lib/metrics',
+  'lib/storage',
   'lib/storage-metrics',
   '../../mocks/window',
   '../../mocks/router',
@@ -32,8 +34,8 @@ define([
 function (chai, sinon, AppStart, Session, Constants, p, Url, OAuthErrors,
       AuthErrors, BaseBroker, FxDesktopBroker, IframeBroker, RedirectBroker,
       WebChannelBroker, BaseRelier, FxDesktopRelier, OAuthRelier, Relier,
-      User, Metrics, StorageMetrics, WindowMock, RouterMock, HistoryMock,
-      TestHelpers) {
+      ResumeToken, User, Metrics, Storage, StorageMetrics, WindowMock,
+      RouterMock, HistoryMock, TestHelpers) {
   'use strict';
 
   var assert = chai.assert;
@@ -369,9 +371,35 @@ function (chai, sinon, AppStart, Session, Constants, p, Url, OAuthErrors,
         appStart.useConfig({});
       });
 
-      it('creates a user', function () {
+      it('creates a user id', function () {
         appStart.initializeUuid();
         assert.isDefined(appStart._uuid);
+      });
+
+      it('fetches from the `resume` search parameter, if available', function () {
+        windowMock.location.search = Url.objToSearchString({
+          resume: ResumeToken.stringify({ uuid: 'uuid from resume token' })
+        });
+
+        appStart.initializeUuid();
+        assert.equal(appStart._uuid, 'uuid from resume token');
+      });
+
+      it('fetches from localStorage if not available in the `resume` token', function () {
+        windowMock.location.search = Url.objToSearchString({
+          resume: ResumeToken.stringify({ campaign: 'spring2015' })
+        });
+        var storage = Storage.factory('localStorage', windowMock);
+        storage.set('uuid', 'uuid from localStorage');
+        appStart.initializeUuid();
+
+        assert.equal(appStart._uuid, 'uuid from localStorage');
+      });
+
+      it('falls back to creating a new token otherwise', function () {
+        appStart.initializeUuid();
+
+        assert.ok(appStart._uuid);
       });
 
       it('persistent via localStorage', function () {

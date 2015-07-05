@@ -148,7 +148,7 @@ define([
       });
     });
 
-    describe('_parseResumeToken', function () {
+    describe('re-population from resume token', function () {
       it('parses the resume param into an object', function () {
         var CAMPAIGN = 'campaign id';
         var ENTRYPOINT = 'entry point';
@@ -171,7 +171,6 @@ define([
           });
       });
     });
-
   });
 });
 

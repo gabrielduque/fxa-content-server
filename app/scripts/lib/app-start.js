@@ -57,6 +57,7 @@ define([
   'models/user',
   'models/form-prefill',
   'models/notifications',
+  'models/resume-token',
   'views/close_button'
 ],
 function (
@@ -101,6 +102,7 @@ function (
   User,
   FormPrefill,
   Notifications,
+  ResumeToken,
   CloseButtonView
 ) {
   'use strict';
@@ -126,7 +128,8 @@ function (
     startApp: function () {
       var self = this;
 
-      // set UUID early so other methods can use it for metrics and ab testing purposes.
+      // set UUID early so other methods can use it for metrics
+      // and A/B testing purposes.
       this.initializeUuid();
 
       // fetch both config and translations in parallel to speed up load.
@@ -463,7 +466,8 @@ function (
           fxaClient: this._fxaClient,
           marketingEmailClient: this._marketingEmailClient,
           assertion: this._assertionLibrary,
-          storage: this._getStorageInstance()
+          storage: this._getStorageInstance(),
+          uuid: this._uuid
         });
       }
     },
@@ -482,18 +486,32 @@ function (
 
     /**
      * Sets a UUID value that is unrelated to any account information.
-     * This value is useful to determine if the logged out user qualifies for ab testing or metrics.
+     * This value is useful to determine if the logged out user qualifies
+     * for A/B testing or metrics.
      */
     initializeUuid: function () {
-      var storage = Storage.factory('localStorage', this._window);
-
-      // we reuse the same uuid if it is available in local storage.
-      if (storage.get('uuid')) {
-        this._uuid = storage.get('uuid');
-      } else {
-        this._uuid = uuid.v4();
-        storage.set('uuid', this._uuid);
+      // fetch the uuid out of the ResumeToken, if possible. This will
+      // override any stored uuids if a new user verifies their account.
+      if (this._searchParam('resume')) {
+        var stringifiedResumeToken = this._searchParam('resume');
+        var resumeToken =
+          ResumeToken.createFromStringifiedResumeToken(stringifiedResumeToken);
+        this._uuid = resumeToken.get('uuid');
       }
+
+      // if not available in the ResumeToken, try localStorage.
+      var storage = Storage.factory('localStorage', this._window);
+      if (! this._uuid && storage.get('uuid')) {
+        this._uuid = storage.get('uuid');
+      }
+
+      // if not available anywhere, create a new one.
+      if (! this._uuid) {
+        this._uuid = uuid.v4();
+      }
+
+      // always store the uuid in case it has changed.
+      storage.set('uuid', this._uuid);
     },
 
     upgradeStorageFormats: function () {
