@@ -4,16 +4,23 @@
 
 /**
  * A relier is a model that holds information about the RP.
+ *
+ * A subclass should override `fieldsInResumeToken` to add/modify which
+ * fields are saved to and populated from a resume token in the resume
+ * query parameter.
  */
 
 define([
   'underscore',
   'models/reliers/base',
+  'models/resume-token',
   'models/mixins/search-param',
   'lib/promise',
   'lib/constants'
-], function (_, BaseRelier, SearchParamMixin, p, Constants) {
+], function (_, BaseRelier, ResumeToken, SearchParamMixin, p, Constants) {
   'use strict';
+
+  var RELIER_FIELDS_IN_RESUME_TOKEN = ['campaign', 'entrypoint'];
 
   var Relier = BaseRelier.extend({
     defaults: {
@@ -49,6 +56,10 @@ define([
       var self = this;
       return p()
         .then(function () {
+          // parse the resume token before importing any other data.
+          // query parameters and server provided data take precendence.
+          self._parseResumeToken();
+
           self.importSearchParam('service');
           self.importSearchParam('preVerifyToken');
           self.importSearchParam('uid');
@@ -90,6 +101,24 @@ define([
      */
     allowCachedCredentials: function () {
       return this.get('allowCachedCredentials');
+    },
+
+    // override fieldsInResumeToken to add/change fields
+    // that are saved to and populated from the resume token.
+    fieldsInResumeToken: RELIER_FIELDS_IN_RESUME_TOKEN,
+    pickResumeTokenInfo: function () {
+      return this.pick(this.fieldsInResumeToken);
+    },
+
+    /**
+     * Sets relier properties from the resume token value
+     * @private
+     */
+    _parseResumeToken: function () {
+      var resumeParam = this.getSearchParam('resume');
+      var resumeToken = new ResumeToken(ResumeToken.parse(resumeParam));
+
+      this.set(resumeToken.pick(this.fieldsInResumeToken));
     }
   });
 
