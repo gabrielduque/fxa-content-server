@@ -30,21 +30,26 @@ define([
   SpeedTrap.prototype = speedTrap;
 
   var ALLOWED_FIELDS = [
+    'ab',
+    'broker',
     'campaign',
     'context',
     'duration',
     'entrypoint',
     'events',
-    'migration',
     'lang',
     'marketing',
+    'migration',
     'navigationTiming',
     'referrer',
     'screen',
     'service',
     'timers',
-    'broker',
-    'ab'
+    'utm_campaign',
+    'utm_content',
+    'utm_medium',
+    'utm_source',
+    'utm_term'
   ];
 
   var TEN_MINS_MS = 10 * 60 * 1000;
@@ -64,40 +69,42 @@ define([
   function Metrics (options) {
     /*eslint complexity: [2, 18] */
     options = options || {};
+    var self = this;
+
+    self._able = options.able;
+    self._ajax = options.ajax || xhr.ajax;
 
     // by default, send the metrics to the content server.
-    this._collector = options.collector || '';
+    self._collector = options.collector || '';
 
-    this._ajax = options.ajax || xhr.ajax;
+    self._brokerType = options.brokerType || NOT_REPORTED_VALUE;
+    self._campaign = options.campaign || NOT_REPORTED_VALUE;
+    self._clientHeight = options.clientHeight || NOT_REPORTED_VALUE;
+    self._clientWidth = options.clientWidth || NOT_REPORTED_VALUE;
+    self._context = options.context || 'web';
+    self._devicePixelRatio = options.devicePixelRatio || NOT_REPORTED_VALUE;
+    self._entrypoint = options.entrypoint || NOT_REPORTED_VALUE;
+    self._inactivityFlushMs = options.inactivityFlushMs || TEN_MINS_MS;
+    self._lang = options.lang || 'unknown';
+    self._marketingImpressions = {};
+    self._migration = options.migration || NOT_REPORTED_VALUE;
+    self._screenHeight = options.screenHeight || NOT_REPORTED_VALUE;
+    self._screenWidth = options.screenWidth || NOT_REPORTED_VALUE;
+    self._service = options.service || NOT_REPORTED_VALUE;
+    self._utmCampaign = options.utm_campaign || NOT_REPORTED_VALUE;
+    self._utmContent = options.utm_content || NOT_REPORTED_VALUE;
+    self._utmMedium = options.utm_medium || NOT_REPORTED_VALUE;
+    self._utmSource = options.utm_source || NOT_REPORTED_VALUE;
+    self._utmTerm = options.utm_term || NOT_REPORTED_VALUE;
 
-    this._speedTrap = new SpeedTrap();
-    this._speedTrap.init();
+    self._window = options.window || window;
+
+    self._speedTrap = new SpeedTrap();
+    self._speedTrap.init();
 
     // `timers` and `events` are part of the public API
-    this.timers = this._speedTrap.timers;
-    this.events = this._speedTrap.events;
-
-    this._window = options.window || window;
-
-    this._lang = options.lang || 'unknown';
-    this._context = options.context || 'web';
-    this._entrypoint = options.entrypoint || NOT_REPORTED_VALUE;
-    this._migration = options.migration || NOT_REPORTED_VALUE;
-    this._service = options.service || NOT_REPORTED_VALUE;
-    this._campaign = options.campaign || NOT_REPORTED_VALUE;
-    this._brokerType = options.brokerType || NOT_REPORTED_VALUE;
-
-    this._clientHeight = options.clientHeight || NOT_REPORTED_VALUE;
-    this._clientWidth = options.clientWidth || NOT_REPORTED_VALUE;
-    this._devicePixelRatio = options.devicePixelRatio || NOT_REPORTED_VALUE;
-    this._screenHeight = options.screenHeight || NOT_REPORTED_VALUE;
-    this._screenWidth = options.screenWidth || NOT_REPORTED_VALUE;
-
-    this._inactivityFlushMs = options.inactivityFlushMs || TEN_MINS_MS;
-
-    this._marketingImpressions = {};
-
-    this._able = options.able;
+    self.timers = self._speedTrap.timers;
+    self.events = self._speedTrap.events;
   }
 
   _.extend(Metrics.prototype, Backbone.Events, {
@@ -156,26 +163,33 @@ define([
      * Get all the data, whether it's allowed to be sent or not.
      */
     getAllData: function () {
-      var loadData = this._speedTrap.getLoad();
-      var unloadData = this._speedTrap.getUnload();
+      var self = this;
+      var loadData = self._speedTrap.getLoad();
+      var unloadData = self._speedTrap.getUnload();
 
       var allData = _.extend({}, loadData, unloadData, {
-        ab: this._able ? this._able.report() : [],
-        context: this._context,
-        service: this._service,
-        broker: this._brokerType,
-        lang: this._lang,
-        entrypoint: this._entrypoint,
-        migration: this._migration,
-        marketing: flattenMarketingImpressions(this._marketingImpressions),
-        campaign: this._campaign,
+        ab: self._able ? self._able.report() : [],
+        broker: self._brokerType,
+        campaign: self._campaign,
+        context: self._context,
+        entrypoint: self._entrypoint,
+        lang: self._lang,
+        marketing: flattenMarketingImpressions(self._marketingImpressions),
+        migration: self._migration,
+        referrer: self._window.document.referrer,
+        service: self._service,
         screen: {
-          devicePixelRatio: this._devicePixelRatio,
-          clientWidth: this._clientWidth,
-          clientHeight: this._clientHeight,
-          width: this._screenWidth,
-          height: this._screenHeight
-        }
+          devicePixelRatio: self._devicePixelRatio,
+          clientWidth: self._clientWidth,
+          clientHeight: self._clientHeight,
+          width: self._screenWidth,
+          height: self._screenHeight
+        },
+        utm_campaign: self._utmCampaign,
+        utm_content: self._utmContent,
+        utm_medium: self._utmMedium,
+        utm_source: self._utmSource,
+        utm_term: self._utmTerm,
       });
 
       return allData;

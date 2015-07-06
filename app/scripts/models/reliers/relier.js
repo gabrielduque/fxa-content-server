@@ -16,21 +16,29 @@ define([
   'models/mixins/resume-token',
   'models/mixins/search-param',
   'lib/promise',
-  'lib/constants'
+  'lib/constants',
+  'underscore'
 ], function (Cocktail, BaseRelier, ResumeTokenMixin, SearchParamMixin, p,
-  Constants) {
+  Constants, _) {
   'use strict';
 
   var RELIER_FIELDS_IN_RESUME_TOKEN = ['campaign', 'entrypoint'];
 
   var Relier = BaseRelier.extend({
     defaults: {
-      service: null,
-      preVerifyToken: null,
-      email: null,
       allowCachedCredentials: true,
+      campaign: null,
+      email: null,
       entrypoint: null,
-      campaign: null
+      preVerifyToken: null,
+      service: null,
+      setting: null,
+      uid: null,
+      utm_campaign: null,
+      utm_content: null,
+      utm_medium: null,
+      utm_source: null,
+      utm_term: null
     },
 
     initialize: function (options) {
@@ -64,20 +72,23 @@ define([
           // resume provided data.
           self.populateFromStringifiedResumeToken(self.getSearchParam('resume'));
 
-          self.importSearchParam('service');
-          self.importSearchParam('preVerifyToken');
-          self.importSearchParam('uid');
-          self.importSearchParam('setting');
-          self.importSearchParam('entrypoint');
-          self.importSearchParam('campaign');
+          // all default defined fields can be imported except
+          // allowCachedCredentials which is set manually.
+          var paramsToImport =
+            _.without(Object.keys(self.defaults), 'allowCachedCredentials');
+
+          paramsToImport.forEach(function (param) {
+            // importSearchParam is called inside of a function instead of
+            // using self.importSearchPram.bind(self) so that the index is not
+            // passed as the modelName.
+            self.importSearchParam(param);
+          });
 
           // A relier can indicate they do not want to allow
           // cached credentials if they set email === 'blank'
-          if (self.getSearchParam('email') ===
-              Constants.DISALLOW_CACHED_CREDENTIALS) {
+          if (self.get('email') === Constants.DISALLOW_CACHED_CREDENTIALS) {
+            self.unset('email');
             self.set('allowCachedCredentials', false);
-          } else {
-            self.importSearchParam('email');
           }
         });
     },

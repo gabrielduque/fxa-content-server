@@ -37,6 +37,7 @@ function (Backbone, sinon, _, NullStorage) {
 
     this.document = {
       body: window.document.body,
+      referrer: window.document.referrer,
       title: window.document.title,
       documentElement: {
         className: '',

@@ -19,6 +19,11 @@ define([
       campaign: undefined,
       entrypoint: undefined,
       state: undefined,
+      utm_campaign: null,
+      utm_content: null,
+      utm_medium: null,
+      utm_source: null,
+      utm_term: null,
       verificationRedirect: undefined,
       // fields from a User
       uuid: undefined

@@ -25,6 +25,12 @@ define([
     var UID = 'uid';
     var ENTRYPOINT = 'preferences';
     var CAMPAIGN = 'fennec';
+    var SETTING = 'avatar';
+    var UTM_CAMPAIGN = 'utm_campaign';
+    var UTM_CONTENT = 'utm_content';
+    var UTM_MEDIUM = 'utm_medium';
+    var UTM_SOURCE = 'utm_source';
+    var UTM_TERM = 'utm_term';
 
     beforeEach(function () {
       windowMock = new WindowMock();
@@ -37,23 +43,41 @@ define([
     describe('fetch', function () {
       it('populates expected fields from the search parameters, unexpected search parameters are ignored', function () {
         windowMock.location.search = TestHelpers.toSearchString({
+          allowCachedCredentials: false,
+          campaign: CAMPAIGN,
+          email: EMAIL,
+          entrypoint: ENTRYPOINT,
+          ignored: 'ignored',
           preVerifyToken: PREVERIFY_TOKEN,
           service: SERVICE,
-          email: EMAIL,
+          setting: SETTING,
           uid: UID,
-          entrypoint: ENTRYPOINT,
-          campaign: CAMPAIGN,
-          ignored: 'ignored'
+          utm_campaign: UTM_CAMPAIGN,
+          utm_content: UTM_CONTENT,
+          utm_medium: UTM_MEDIUM,
+          utm_source: UTM_SOURCE,
+          utm_term: UTM_TERM
         });
 
         return relier.fetch()
             .then(function () {
+              // not imported from the search parameters, but is set manually.
+              assert.isTrue(relier.get('allowCachedCredentials'));
+
+              assert.equal(relier.get('campaign'), CAMPAIGN);
+              assert.equal(relier.get('email'), EMAIL);
+              assert.equal(relier.get('entrypoint'), ENTRYPOINT);
               assert.equal(relier.get('preVerifyToken'), PREVERIFY_TOKEN);
               assert.equal(relier.get('service'), SERVICE);
-              assert.equal(relier.get('email'), EMAIL);
+              assert.equal(relier.get('setting'), SETTING);
               assert.equal(relier.get('uid'), UID);
-              assert.equal(relier.get('entrypoint'), ENTRYPOINT);
-              assert.equal(relier.get('campaign'), CAMPAIGN);
+              assert.equal(relier.get('utm_campaign'), UTM_CAMPAIGN);
+              assert.equal(relier.get('utm_campaign'), UTM_CAMPAIGN);
+              assert.equal(relier.get('utm_content'), UTM_CONTENT);
+              assert.equal(relier.get('utm_medium'), UTM_MEDIUM);
+              assert.equal(relier.get('utm_source'), UTM_SOURCE);
+              assert.equal(relier.get('utm_term'), UTM_TERM);
+
               assert.isFalse(relier.has('ignored'));
             });
       });

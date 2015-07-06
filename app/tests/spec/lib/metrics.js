@@ -24,21 +24,27 @@ function (chai, $, p, Metrics, AuthErrors, WindowMock, TestHelpers) {
 
     beforeEach(function () {
       windowMock = new WindowMock();
+      windowMock.document.referrer = 'https://marketplace.firefox.com';
 
       metrics = new Metrics({
-        window: windowMock,
-        lang: 'db_LB',
-        service: 'sync',
-        context: 'fx_desktop_v1',
         brokerType: 'fx-desktop',
-        entrypoint: 'menupanel',
-        migration: 'sync1.5',
         campaign: 'fennec',
-        devicePixelRatio: 2,
-        clientWidth: 1033,
         clientHeight: 966,
+        clientWidth: 1033,
+        context: 'fx_desktop_v1',
+        devicePixelRatio: 2,
+        entrypoint: 'menupanel',
+        lang: 'db_LB',
+        migration: 'sync1.5',
+        screenHeight: 1200,
         screenWidth: 1600,
-        screenHeight: 1200
+        service: 'sync',
+        utm_campaign: 'utm_campaign',
+        utm_content: 'utm_content',
+        utm_medium: 'utm_medium',
+        utm_source: 'utm_source',
+        utm_term: 'utm_term',
+        window: windowMock
       });
       metrics.init();
     });
@@ -61,24 +67,30 @@ function (chai, $, p, Metrics, AuthErrors, WindowMock, TestHelpers) {
       it('gets non-optional fields', function () {
         var filteredData = metrics.getFilteredData();
 
-        assert.isTrue(filteredData.hasOwnProperty('events'));
-        assert.isTrue(filteredData.hasOwnProperty('timers'));
-        assert.isTrue(filteredData.hasOwnProperty('navigationTiming'));
-        assert.isTrue(filteredData.hasOwnProperty('duration'));
-
-        assert.equal(filteredData.context, 'fx_desktop_v1');
-        assert.equal(filteredData.service, 'sync');
+        assert.isTrue(filteredData.hasOwnProperty('ab'));
         assert.equal(filteredData.broker, 'fx-desktop');
-        assert.equal(filteredData.lang, 'db_LB');
-        assert.equal(filteredData.entrypoint, 'menupanel');
-        assert.equal(filteredData.migration, 'sync1.5');
         assert.equal(filteredData.campaign, 'fennec');
-
+        assert.equal(filteredData.context, 'fx_desktop_v1');
+        assert.isTrue(filteredData.hasOwnProperty('duration'));
+        assert.equal(filteredData.entrypoint, 'menupanel');
+        assert.isTrue(filteredData.hasOwnProperty('events'));
+        assert.equal(filteredData.lang, 'db_LB');
+        assert.isArray(filteredData.marketing);
+        assert.equal(filteredData.migration, 'sync1.5');
+        assert.isTrue(filteredData.hasOwnProperty('navigationTiming'));
+        assert.equal(filteredData.referrer, 'https://marketplace.firefox.com');
         assert.equal(filteredData.screen.width, 1600);
         assert.equal(filteredData.screen.height, 1200);
         assert.equal(filteredData.screen.devicePixelRatio, 2);
         assert.equal(filteredData.screen.clientWidth, 1033);
         assert.equal(filteredData.screen.clientHeight, 966);
+        assert.equal(filteredData.service, 'sync');
+        assert.isTrue(filteredData.hasOwnProperty('timers'));
+        assert.equal(filteredData.utm_campaign, 'utm_campaign');
+        assert.equal(filteredData.utm_content, 'utm_content');
+        assert.equal(filteredData.utm_medium, 'utm_medium');
+        assert.equal(filteredData.utm_source, 'utm_source');
+        assert.equal(filteredData.utm_term, 'utm_term');
       });
     });
 

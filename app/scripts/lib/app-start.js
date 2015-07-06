@@ -242,18 +242,23 @@ function (
       var relier = this._relier;
       var screenInfo = new ScreenInfo(this._window);
       this._metrics = this._createMetrics(this._config.metricsSampleRate, {
-        lang: this._config.language,
-        service: relier.get('service'),
-        context: relier.get('context'),
-        entrypoint: relier.get('entrypoint'),
-        migration: relier.get('migration'),
+        able: this._able,
         campaign: relier.get('campaign'),
         clientHeight: screenInfo.clientHeight,
         clientWidth: screenInfo.clientWidth,
+        context: relier.get('context'),
         devicePixelRatio: screenInfo.devicePixelRatio,
+        entrypoint: relier.get('entrypoint'),
+        lang: this._config.language,
+        migration: relier.get('migration'),
         screenHeight: screenInfo.screenHeight,
         screenWidth: screenInfo.screenWidth,
-        able: this._able
+        service: relier.get('service'),
+        utm_campaign: relier.get('utm_campaign'),
+        utm_content: relier.get('utm_content'),
+        utm_medium: relier.get('utm_medium'),
+        utm_source: relier.get('utm_source'),
+        utm_term: relier.get('utm_term')
       });
       this._metrics.init();
     },
